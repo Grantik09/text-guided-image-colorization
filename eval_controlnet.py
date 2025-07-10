@@ -77,10 +77,13 @@ def main(args):
     # Load the validation split of the colorization dataset
     val_dataset = load_dataset(args.dataset, split="validation", revision=args.revision)
 
-    controlnet = ControlNetModel.from_pretrained(f"{args.model_dir}/controlnet", torch_dtype=torch.float16)
+    controlnet = ControlNetModel.from_pretrained(f"{args.model_dir}/controlnet", torch_dtype=torch.float32)
     pipe = StableDiffusionControlNetPipeline.from_pretrained(
-        args.model_id, controlnet=controlnet, torch_dtype=torch.float16
-    ).to("cuda")
+        args.model_id, controlnet=controlnet, torch_dtype=torch.float32
+    ).to("cpu")
+
+    pipe.safety_checker = None
+
 
     pipe.safety_checker = None
 

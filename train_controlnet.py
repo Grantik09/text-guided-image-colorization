@@ -181,7 +181,7 @@ def log_validation(
 
         del pipeline
         gc.collect()
-        torch.cuda.empty_cache()
+        torch.cpu.empty_cache()
 
         return image_logs
 
@@ -440,7 +440,7 @@ def parse_args(input_args=None):
         default=None,
         choices=["no", "fp16", "bf16"],
         help=(
-            "Whether to use mixed precision. Choose between fp16 and bf16 (bfloat16). Bf16 requires PyTorch >="
+            "Whether to use mixed precision. Choose between fp16 and bf16 (float32). Bf16 requires PyTorch >="
             " 1.10.and an Nvidia Ampere GPU.  Default to the value of accelerate config of the current system or the"
             " flag passed with the `accelerate.launch` command. Use this argument to override the accelerate config."
         ),
@@ -897,7 +897,7 @@ def main(args):
     # Enable TF32 for faster training on Ampere GPUs,
     # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
     if args.allow_tf32:
-        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cpu.matmul.allow_tf32 = True
 
     if args.scale_lr:
         args.learning_rate = (
@@ -962,9 +962,9 @@ def main(args):
     # as these models are only used for inference, keeping weights in full precision is not required.
     weight_dtype = torch.float32
     if accelerator.mixed_precision == "fp16":
-        weight_dtype = torch.float16
+        weight_dtype = torch.float32
     elif accelerator.mixed_precision == "bf16":
-        weight_dtype = torch.bfloat16
+        weight_dtype = torch.float32
 
     # Move vae, unet and text_encoder to device and cast to weight_dtype
     vae.to(accelerator.device, dtype=weight_dtype)

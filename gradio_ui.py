@@ -103,8 +103,8 @@ def blip_image_captioning(image: PIL.Image.Image,
                           conditional: bool) -> str:
     # https://huggingface.co/Salesforce/blip-image-captioning-large
     # https://huggingface.co/Salesforce/blip-image-captioning-base
-    if weight_dtype == torch.bfloat16: # in case model might not accept bfloat16 data type
-        weight_dtype = torch.float16
+    if weight_dtype == torch.float32: # in case model might not accept float32 data type
+        weight_dtype = torch.float32
 
     processor = BlipProcessor.from_pretrained(f"Salesforce/{model_backbone}")
     model = BlipForConditionalGeneration.from_pretrained(
@@ -183,9 +183,9 @@ def process_image(image_path: str,
     
     weight_dtype = torch.float32
     if accelerator.mixed_precision == "fp16":
-        weight_dtype = torch.float16
+        weight_dtype = torch.float32
     elif accelerator.mixed_precision == "bf16":
-        weight_dtype = torch.bfloat16
+        weight_dtype = torch.float32
 
     vae_path = (
         pretrained_model_name_or_path
@@ -313,7 +313,7 @@ def create_interface():
             gr.Radio(choices=["no", "fp16", "bf16"],
                      value="fp16",
                      label="Mixed Precision",
-                     info="Whether to use mixed precision. Choose between fp16 and bf16 (bfloat16)."),
+                     info="Whether to use mixed precision. Choose between fp16 and bf16 (float32)."),
             gr.Dropdown(choices=["stabilityai/stable-diffusion-xl-base-1.0"],
                         value="stabilityai/stable-diffusion-xl-base-1.0",
                         label="Base Model",
